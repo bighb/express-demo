@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import taskRoutes from "./routes/taskRoutes";
 const app = express();
@@ -25,18 +25,11 @@ app.use((req, res) => {
   res.status(404).send("Not Found");
 });
 
-// 错误处理
-app.use(
-  (
-    err: Error,
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-  ) => {
-    console.error(err.stack);
-    res.status(500).send("Something broke!");
-  }
-);
+// 全局错误处理中间件
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "Something went wrong", details: err.message });
+});
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

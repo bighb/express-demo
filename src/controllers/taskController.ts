@@ -27,6 +27,26 @@ export const addTask: RequestHandler = async (req, res) => {
     return;
   }
 
+  // 验证和转换 status
+  const validStatuses = ["pending", "in_progress", "completed"] as const;
+  let taskStatus: Task["status"] = "pending"; // 默认值
+  if (status !== undefined) {
+    if (typeof status === "number") {
+      // 将数字映射到 ENUM 值
+      const statusMap: Record<number, Task["status"]> = {
+        1: "pending",
+        2: "in_progress",
+        3: "completed",
+      };
+      taskStatus = statusMap[status] || "pending"; // 无效数字默认 pending
+    } else if (validStatuses.includes(status as any)) {
+      taskStatus = status as Task["status"];
+    } else {
+      res.status(400).send("Invalid status value");
+      return;
+    }
+  }
+
   const task: Task = { title, description, status };
   try {
     const taskId = await createTask(task);
