@@ -7,28 +7,43 @@ import {
   deleteTask,
 } from "../models/taskModel";
 import { Task } from "../types/task";
+import { ApiResponse } from "../types/response";
 // getTasks：获取所有任务并返回。
 // addTask：验证标题后创建任务，返回新任务详情。
 // 使用 try-catch 处理错误，返回合适的 HTTP 状态码。
 export const getTasks: RequestHandler = async (req, res) => {
   try {
     const tasks = await getAllTasks();
-    res.status(200).json(tasks);
+    const response: ApiResponse<Task[]> = {
+      data: tasks,
+      msg: "Success",
+      code: 0,
+    };
+    res.status(200).json(response);
   } catch (error) {
-    console.error(error);
-    res.status(500).send("Error fetching tasks");
+    const response: ApiResponse<null> = {
+      data: null,
+      msg: "Error fetching tasks",
+      code: 1,
+    };
+    res.status(500).json(response);
   }
 };
 
 export const addTask: RequestHandler = async (req, res) => {
   const { title, description, status } = req.body as Task;
   if (!title) {
-    res.status(400).send("Title is required");
+    const response: ApiResponse<null> = {
+      data: null,
+      msg: "Title is required",
+      code: 1,
+    };
+    res.status(400).json(response);
     return;
   }
 
   // 验证和转换 status
-  const validStatuses = ["pending", "in_progress", "completed"] as const;
+  const validStatuses = ["pending", "in_progress", "completed"];
   let taskStatus: Task["status"] = "pending"; // 默认值
   if (status !== undefined) {
     if (typeof status === "number") {
@@ -42,100 +57,198 @@ export const addTask: RequestHandler = async (req, res) => {
     } else if (validStatuses.includes(status as any)) {
       taskStatus = status as Task["status"];
     } else {
-      res.status(400).send("Invalid status value");
+      const response: ApiResponse<null> = {
+        data: null,
+        msg: "Invalid status value",
+        code: 1,
+      };
+      res.status(400).json(response);
       return;
     }
   }
 
-  const task: Task = { title, description, status };
+  const task: Task = { title, description, status: taskStatus };
   try {
     const taskId = await createTask(task);
-    res.status(201).json({ id: taskId, ...task });
+    const response: ApiResponse<{ id: number } & Task> = {
+      data: { id: taskId, ...task },
+      msg: "Success",
+      code: 0,
+    };
+    res.status(201).json(response);
   } catch (error) {
     console.error(error);
-    res.status(500).send("Error creating task");
+    const response: ApiResponse<null> = {
+      data: null,
+      msg: "Error creating task",
+      code: 1,
+    };
+    res.status(500).json(response);
   }
 };
 
 export const getTask: RequestHandler = async (req, res) => {
   const id = Number(req.params.id);
   if (isNaN(id)) {
-    res.status(400).send("Invalid task ID");
-    // RequestHandler 类型期望函数返回 void 或 Promise<void>，而不是返回 Response 对象。
-    // 当你使用 return res.status() 时，函数会返回 Response 对象，这与类型定义不符。
+    const response: ApiResponse<null> = {
+      data: null,
+      msg: "Invalid task ID",
+      code: 1,
+    };
+    res.status(400).json(response);
     return;
   }
 
   try {
     const task = await getTaskById(id);
     if (!task) {
-      res.status(404).send("Task not found");
+      const response: ApiResponse<null> = {
+        data: null,
+        msg: "Task not found",
+        code: 1,
+      };
+      res.status(404).json(response);
       return;
     }
-    res.status(200).json(task);
+    const response: ApiResponse<Task> = {
+      data: task,
+      msg: "Success",
+      code: 0,
+    };
+    res.status(200).json(response);
   } catch (error) {
     console.error(error);
-    res.status(500).send("Error fetching task");
+    const response: ApiResponse<null> = {
+      data: null,
+      msg: "Error fetching task",
+      code: 1,
+    };
+    res.status(500).json(response);
   }
 };
 
 export const updateTaskById: RequestHandler = async (req, res) => {
   const id = Number(req.params.id);
   if (isNaN(id)) {
-    res.status(400).send("Invalid task ID");
+    const response: ApiResponse<null> = {
+      data: null,
+      msg: "Invalid task ID",
+      code: 1,
+    };
+    res.status(400).json(response);
     return;
   }
 
   const updates = req.body as Partial<Task>;
   if (Object.keys(updates).length === 0) {
-    res.status(400).send("No update data provided");
+    const response: ApiResponse<null> = {
+      data: null,
+      msg: "No update data provided",
+      code: 1,
+    };
+    res.status(400).json(response);
     return;
   }
 
   try {
     const taskExists = await getTaskById(id);
     if (!taskExists) {
-      res.status(404).send("Task not found");
+      const response: ApiResponse<null> = {
+        data: null,
+        msg: "Task not found",
+        code: 1,
+      };
+      res.status(404).json(response);
       return;
     }
 
     const result = await updateTask(id, updates);
     if (!result) {
-      res.status(400).send("Update failed");
+      const response: ApiResponse<null> = {
+        data: null,
+        msg: "Update failed",
+        code: 1,
+      };
+      res.status(400).json(response);
       return;
     }
 
     const updatedTask = await getTaskById(id);
-    res.status(200).json(updatedTask);
+    if (!updatedTask) {
+      const response: ApiResponse<null> = {
+        data: null,
+        msg: "Task not found after update",
+        code: 1,
+      };
+      res.status(404).json(response);
+      return;
+    }
+
+    const response: ApiResponse<Task> = {
+      data: updatedTask,
+      msg: "Success",
+      code: 0,
+    };
+    res.status(200).json(response);
   } catch (error) {
     console.error(error);
-    res.status(500).send("Error updating task");
+    const response: ApiResponse<null> = {
+      data: null,
+      msg: "Error updating task",
+      code: 1,
+    };
+    res.status(500).json(response);
   }
 };
 
 export const deleteTaskById: RequestHandler = async (req, res) => {
   const id = Number(req.params.id);
   if (isNaN(id)) {
-    res.status(400).send("Invalid task ID");
+    const response: ApiResponse<null> = {
+      data: null,
+      msg: "Invalid task ID",
+      code: 1,
+    };
+    res.status(400).json(response);
     return;
   }
 
   try {
     const taskExists = await getTaskById(id);
     if (!taskExists) {
-      res.status(404).send("Task not found");
+      const response: ApiResponse<null> = {
+        data: null,
+        msg: "Task not found",
+        code: 1,
+      };
+      res.status(404).json(response);
       return;
     }
 
     const result = await deleteTask(id);
     if (!result) {
-      res.status(400).send("Delete failed");
+      const response: ApiResponse<null> = {
+        data: null,
+        msg: "Delete failed",
+        code: 1,
+      };
+      res.status(400).json(response);
       return;
     }
 
-    res.status(204).send();
+    const response: ApiResponse<null> = {
+      data: null,
+      msg: "Success",
+      code: 0,
+    };
+    res.status(204).json(response);
   } catch (error) {
     console.error(error);
-    res.status(500).send("Error deleting task");
+    const response: ApiResponse<null> = {
+      data: null,
+      msg: "Error deleting task",
+      code: 1,
+    };
+    res.status(500).json(response);
   }
 };
