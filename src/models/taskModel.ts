@@ -1,4 +1,4 @@
-import pool from "../db/mysql";
+import pool from "../config/db"; // 引入数据库连接池
 import { Task } from "../types/task";
 // getAllTasks：查询所有任务，返回 Task[] 类型数组。
 // createTask：插入新任务，返回新任务的 id。

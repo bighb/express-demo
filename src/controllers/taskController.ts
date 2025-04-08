@@ -69,6 +69,7 @@ export const addTask: RequestHandler = async (req, res) => {
 
   const task: Task = { title, description, status: taskStatus };
   try {
+    console.log("task: ", task);
     const taskId = await createTask(task);
     const response: ApiResponse<{ id: number } & Task> = {
       data: { id: taskId, ...task },
@@ -80,7 +81,7 @@ export const addTask: RequestHandler = async (req, res) => {
     console.error(error);
     const response: ApiResponse<null> = {
       data: null,
-      msg: "Error creating task",
+      msg: "创建任务失败",
       code: 1,
     };
     res.status(500).json(response);
