@@ -1,145 +1,158 @@
-# Express 中间件详解与大型项目架构 
+# 任务管理API
 
-## Express 中间件深入理解
+一个基于Express和TypeScript构建的RESTful API项目，提供任务(Task)管理功能，包括任务的创建、查询、更新和删除。本项目主要用于学习Express框架和TypeScript在后端开发中的应用。
 
-### 1. 中间件本质
+<div align="center">
+  <a href="./README_DEMO.md">详细 Express 技术架构说明文档</a>
+</div>
+## 特性
 
-中间件本质上是一个函数，接收 `request`、`response` 对象和 next() 函数。Express 应用就是一系列中间件函数的调用栈。
+- RESTful API设计
+- 分层架构（路由、控制器、模型）
+- Swagger API文档自动生成
+- 错误处理中间件
+- 日志系统（分级日志、文件日志）
+- 健康检查端点
+- MySQL数据库连接池
+- TypeScript类型保障
+- 环境变量配置
 
-### 2. 中间件类型
+## 技术栈
 
-- **应用级中间件**: app.use()
-- **路由级中间件**: `router.use()`, `router.METHOD()`
-- **错误处理中间件**: `(err, req, res, next) => {}`
-- **内置中间件**: `express.json()`和 `express.static()`
-- **第三方中间件**: `morgan`, `cors`, `helmet`
+- **语言**: TypeScript
 
-### 3. 中间件工作流程
+- **运行时**: Node.js
+
+- **框架**: Express
+- **包管理**: pnpm
+
+- **数据库**: MySQL
+
+- **API文档**: Swagger/OpenAPI
+- **日志**: Winston
+
+- 其他工具：
+  - dotenv: 环境变量管理
+  - `mysql2`: 高性能MySQL客户端
+  - cors: 跨域资源共享
+  - `nodemon`: 开发环境热重载
+
+## 先决条件
+
+- Node.js (推荐 v18+)
+- pnpm (推荐最新版)
+- MySQL 数据库
+
+## 安装步骤
+
+### 1. 克隆仓库
+
+```bash
+git clone https://github.com/bighb/express-demo.git
+
+cd my-blog-api
+```
+
+### 2. 安装依赖
+
+```bash
+pnpm install
+```
+
+
+
+### 3. 配置数据库
+
+运行`demo.sql`脚本创建数据库和表结构：
+
+```bash
+mysql -u root -p < demo.sql
+```
+
+
+
+### 4. 配置环境变量
+
+复制`.env.example`文件并重命名为`.env`：
+
+cp .env.example .env
+
+根据你的数据库配置修改`.env`文件：
+
+\# 数据库配置
 
 ```
-请求 → 中间件1 → 中间件2 → ... → 路由处理 → ... → 中间件n → 响应
+DB_HOST=localhost
+
+DB_USER=your_username
+
+DB_PASSWORD=your_password
+
+DB_NAME=task_manager
+
+DB_CONNECTION_LIMIT=10
 ```
 
-### 4. 中间件注意事项
 
-- 顺序至关重要
-- 必须调用next()或结束响应
-- 可以修改 req/res对象
-- 可以提前终止请求-响应周期
 
-## 大型Web项目的模块化与结构划分
+### 5. 构建项目
 
-### 1. 常见项目结构
-
-```
-project/
-├── src/
-│   ├── config/            # 配置文件
-│   ├── controllers/       # 控制器
-│   ├── middlewares/       # 自定义中间件
-│   ├── models/            # 数据模型
-│   ├── routes/            # 路由定义
-│   ├── services/          # 业务逻辑
-│   ├── utils/             # 工具函数
-│   ├── validators/        # 数据验证
-│   └── index.ts           # 主入口
-├── tests/                 # 测试文件
-├── .env                   # 环境变量
-└── package.json
+```bash
+pnpm build
 ```
 
-### 2. 架构模式
+### 6. 启动服务
 
-#### MVC模式
+开发模式（热重载）：
 
-- **模型(Model)**: 数据和业务逻辑
-- **视图(View)**: 表现层(API响应)
-- **控制器(Controller)**: 处理请求和响应
+pnpm dev
 
-#### 分层架构
+生产模式：
 
-路由层 → 控制器层 → 服务层 → 数据访问层
+pnpm start
 
-### 3. 模块化策略
+服务将在http://localhost:3000启动，你可以在浏览器访问http://localhost:3000/api-docs查看API文档。
 
-#### 按功能划分
-
-每个功能模块包含自身的路由、控制器、服务等：
+## 项目结构
 
 ```
 src/
-├── config/                  # 配置文件
-│   ├── db.ts                # 数据库配置
-│   ├── swagger.ts           # Swagger配置
-│   └── jwt.ts               # JWT配置
-│
-├── middlewares/             # 中间件
-│   ├── auth.middleware.ts   # 认证中间件
-│   ├── error.middleware.ts  # 错误处理中间件
-│   └── logger.middleware.ts # 日志中间件
-│
-├── models/                  # 数据模型
-│   ├── user.model.ts        # 用户模型
-│   └── task.model.ts        # 任务模型
-│
-├── controllers/             # 控制器
-│   ├── auth/                # 认证相关控制器
-│   ├── tasks/               # 任务相关控制器
-│   └── users/               # 用户相关控制器
-│
-├── services/                # 业务逻辑层
-│   ├── auth.service.ts      # 认证服务
-│   ├── task.service.ts      # 任务服务
-│   └── user.service.ts      # 用户服务
-│
-├── routes/                  # 路由
-│   ├── index.ts             # 路由注册主文件
-│   ├── auth.routes.ts       # 认证路由
-│   ├── task.routes.ts       # 任务路由
-│   └── user.routes.ts       # 用户路由
-│
-├── docs/                    # Swagger文档
-│   ├── auth.docs.ts         # 认证相关接口文档
-│   ├── task.docs.ts         # 任务相关接口文档
-│   └── schemas.docs.ts      # 共享的Schema定义
-│
-├── utils/                   # 工具函数
-│   ├── jwt.utils.ts         # JWT工具
-│   ├── password.utils.ts    # 密码处理工具
-│   └── response.utils.ts    # 响应格式化工具
-│
-├── types/                   # 类型定义
-│   ├── request.ts           # 请求相关类型
-│   ├── response.ts          # 响应相关类型
-│   └── auth.ts              # 认证相关类型
-│
-├── app.ts                   # 应用配置和中间件注册
-└── index.ts                 # 应用入口点
+├── config/            # 配置文件
+│   ├── db.ts          # 数据库配置
+│   └── swagger.ts     # Swagger配置
+├── controllers/       # 控制器
+│   └── taskController.ts
+├── docs/              # API文档
+│   └── task.docs.ts
+├── middlewares/       # 中间件
+│   ├── error.middleware.ts
+│   └── logger.middleware.ts
+├── models/            # 数据模型
+│   └── taskModel.ts
+├── routes/            # 路由定义
+│   ├── healthRoutes.ts
+│   └── taskRoutes.ts
+├── types/             # 类型定义
+│   ├── response.ts
+│   └── task.ts
+├── utils/             # 工具函数
+│   ├── errors.ts
+│   └── logger.ts
+└── index.ts           # 应用入口
 ```
 
-### 4. 大型项目最佳实践
+## 日志
 
-- **依赖注入**: 使用 `inversify`, `typedi` 等
-- **API文档**: 使用 Swagger/OpenAPI
-- **微服务**: 将大型应用拆分为小型、独立部署的服务
-- **中间件组合**: 创建特定路由组的中间件链
-- **错误处理集中化**: 全局错误处理中间件
-- **配置管理**: 不同环境的配置分离
-- **日志系统**: 分级日志、请求追踪
-- **监控与性能**: 性能监控中间件
+日志文件存储在logs目录下：
 
-### 5. 扩展性考虑
+- combined.log: 所有级别的日志
+- error.log: 仅错误级别日志
 
-- **插件系统**: 允许功能模块化添加
-- **钩子系统**: 在关键点提供扩展点
-- **事件系统**: 通过事件总线解耦组件
+## 贡献
 
-### 6.错误日志完善
+欢迎提交Issue和Pull Request来完善本项目。
 
-1. **详细的错误信息**：明确区分不同类型的错误（数据库错误、验证错误等）
-2. **结构化的日志系统**：不同级别的日志，带有时间戳和错误堆栈
-3. **更好的调试体验**：在开发环境提供详细错误信息
-4. **健康检查端点**：随时检查应用和数据库状态
-5. **统一的错误处理流程**：通过自定义错误类和中间件
-6. **更健壮的数据库连接管理**：连接测试和错误详情
-7. **更安全的错误处理**：生产环境不暴露敏感信息
+## License
+
+本仓库遵循License 开源协议，该许可证本质上是 Apache 2.0，但有一些额外的限制。
+
