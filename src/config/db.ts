@@ -1,13 +1,11 @@
 import mysql from "mysql2/promise";
 import dotenv from "dotenv";
+import logger from "../utils/logger";
+import { DatabaseError } from "../utils/errors";
+
 dotenv.config();
-// host: "localhost" - 本地数据库。
-// user: "root" - MySQL 用户名。
-// password: "12345678" - MySQL 密码。
-// database: "task_manager" - 目标数据库。
-// connectionLimit: 限制最大连接数为 10。
-// waitForConnections 和 queueLimit：确保连接池在高负载时正常工作。
-// 使用环境变量进行配置
+
+// 创建连接池
 const pool = mysql.createPool({
   host: process.env.DB_HOST || "localhost",
   user: process.env.DB_USER || "root",
@@ -17,5 +15,40 @@ const pool = mysql.createPool({
   connectionLimit: Number(process.env.DB_CONNECTION_LIMIT || 10),
   queueLimit: 0,
 });
+
+// 测试连接
+export const testConnection = async () => {
+  try {
+    const connection = await pool.getConnection();
+    logger.info("数据库连接成功");
+    connection.release();
+    return true;
+  } catch (error) {
+    logger.error(
+      `数据库连接失败: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+    logger.debug(error instanceof Error ? error.stack : "");
+    return false;
+  }
+};
+
+// 包装查询方法以添加错误处理
+export const executeQuery = async (sql: string, params?: any[]) => {
+  try {
+    return await pool.query(sql, params);
+  } catch (error) {
+    logger.error(`SQL查询失败: ${sql}`);
+    logger.error(`参数: ${params ? JSON.stringify(params) : "none"}`);
+    logger.error(
+      error instanceof Error ? error.stack || error.message : String(error)
+    );
+    throw new DatabaseError("查询执行失败", error);
+  }
+};
+
+// 初始化时立即测试连接
+testConnection();
 
 export default pool;

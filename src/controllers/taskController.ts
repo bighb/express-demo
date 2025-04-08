@@ -8,248 +8,234 @@ import {
 } from "../models/taskModel";
 import { Task } from "../types/task";
 import { ApiResponse } from "../types/response";
-// getTasks：获取所有任务并返回。
-// addTask：验证标题后创建任务，返回新任务详情。
-// 使用 try-catch 处理错误，返回合适的 HTTP 状态码。
-export const getTasks: RequestHandler = async (req, res) => {
+import { AppError, ValidationError, NotFoundError } from "../utils/errors";
+import logger from "../utils/logger";
+
+/**
+ * 获取所有任务
+ */
+export const getTasks: RequestHandler = async (req, res, next) => {
   try {
     const tasks = await getAllTasks();
+
     const response: ApiResponse<Task[]> = {
       data: tasks,
-      msg: "Success",
+      msg: "获取任务列表成功",
       code: 0,
     };
+
     res.status(200).json(response);
   } catch (error) {
-    const response: ApiResponse<null> = {
-      data: null,
-      msg: "Error fetching tasks",
-      code: 1,
-    };
-    res.status(500).json(response);
+    logger.error(
+      `获取任务列表失败: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+    next(error);
   }
 };
 
-export const addTask: RequestHandler = async (req, res) => {
-  const { title, description, status } = req.body as Task;
-  if (!title) {
-    const response: ApiResponse<null> = {
-      data: null,
-      msg: "Title is required",
-      code: 1,
-    };
-    res.status(400).json(response);
-    return;
-  }
-
-  // 验证和转换 status
-  const validStatuses = ["pending", "in_progress", "completed"];
-  let taskStatus: Task["status"] = "pending"; // 默认值
-  if (status !== undefined) {
-    if (typeof status === "number") {
-      // 将数字映射到 ENUM 值
-      const statusMap: Record<number, Task["status"]> = {
-        1: "pending",
-        2: "in_progress",
-        3: "completed",
-      };
-      taskStatus = statusMap[status] || "pending"; // 无效数字默认 pending
-    } else if (validStatuses.includes(status as any)) {
-      taskStatus = status as Task["status"];
-    } else {
-      const response: ApiResponse<null> = {
-        data: null,
-        msg: "Invalid status value",
-        code: 1,
-      };
-      res.status(400).json(response);
-      return;
-    }
-  }
-
-  const task: Task = { title, description, status: taskStatus };
+/**
+ * 添加新任务
+ */
+export const addTask: RequestHandler = async (req, res, next) => {
   try {
-    console.log("task: ", task);
+    const { title, description, status } = req.body as Task;
+
+    // 验证标题
+    if (!title || title.trim() === "") {
+      throw new ValidationError("标题是必填项");
+    }
+
+    // 验证和转换状态
+    const validStatuses = ["pending", "in_progress", "completed"];
+    let taskStatus: Task["status"] = "pending"; // 默认值
+
+    if (status !== undefined) {
+      if (typeof status === "number") {
+        const statusMap: Record<number, Task["status"]> = {
+          1: "pending",
+          2: "in_progress",
+          3: "completed",
+        };
+        if (!statusMap[status]) {
+          throw new ValidationError(
+            `状态值无效: ${status}，有效的数字状态为 1, 2, 3`
+          );
+        }
+        taskStatus = statusMap[status];
+      } else if (validStatuses.includes(status as any)) {
+        taskStatus = status as Task["status"];
+      } else {
+        throw new ValidationError(
+          `状态值无效: ${status}，有效的状态为 pending, in_progress, completed`
+        );
+      }
+    }
+
+    const task: Task = {
+      title: title.trim(),
+      description: description?.trim() || undefined,
+      status: taskStatus,
+    };
+
+    logger.info(`开始创建任务: ${JSON.stringify(task)}`);
     const taskId = await createTask(task);
+    logger.info(`任务创建成功: ID=${taskId}, 标题="${title}"`);
+
     const response: ApiResponse<{ id: number } & Task> = {
       data: { id: taskId, ...task },
-      msg: "Success",
+      msg: "任务创建成功",
       code: 0,
     };
+
     res.status(201).json(response);
   } catch (error) {
-    console.error(error);
-    const response: ApiResponse<null> = {
-      data: null,
-      msg: "创建任务失败",
-      code: 1,
-    };
-    res.status(500).json(response);
+    logger.error(
+      `创建任务失败: ${error instanceof Error ? error.message : String(error)}`
+    );
+    next(error);
   }
 };
 
-export const getTask: RequestHandler = async (req, res) => {
-  const id = Number(req.params.id);
-  if (isNaN(id)) {
-    const response: ApiResponse<null> = {
-      data: null,
-      msg: "Invalid task ID",
-      code: 1,
-    };
-    res.status(400).json(response);
-    return;
-  }
-
+/**
+ * 根据ID获取任务
+ */
+export const getTask: RequestHandler = async (req, res, next) => {
   try {
-    const task = await getTaskById(id);
-    if (!task) {
-      const response: ApiResponse<null> = {
-        data: null,
-        msg: "Task not found",
-        code: 1,
-      };
-      res.status(404).json(response);
-      return;
+    const id = Number(req.params.id);
+
+    if (isNaN(id)) {
+      throw new ValidationError(`无效的任务ID: ${req.params.id}`);
     }
+
+    const task = await getTaskById(id);
+
+    if (!task) {
+      throw new NotFoundError(`未找到ID为${id}的任务`);
+    }
+
     const response: ApiResponse<Task> = {
       data: task,
-      msg: "Success",
+      msg: "获取任务成功",
       code: 0,
     };
+
     res.status(200).json(response);
   } catch (error) {
-    console.error(error);
-    const response: ApiResponse<null> = {
-      data: null,
-      msg: "Error fetching task",
-      code: 1,
-    };
-    res.status(500).json(response);
+    logger.error(
+      `获取任务失败: ${error instanceof Error ? error.message : String(error)}`
+    );
+    next(error);
   }
 };
 
-export const updateTaskById: RequestHandler = async (req, res) => {
-  const id = Number(req.params.id);
-  if (isNaN(id)) {
-    const response: ApiResponse<null> = {
-      data: null,
-      msg: "Invalid task ID",
-      code: 1,
-    };
-    res.status(400).json(response);
-    return;
-  }
-
-  const updates = req.body as Partial<Task>;
-  if (Object.keys(updates).length === 0) {
-    const response: ApiResponse<null> = {
-      data: null,
-      msg: "No update data provided",
-      code: 1,
-    };
-    res.status(400).json(response);
-    return;
-  }
-
+/**
+ * 更新任务
+ */
+export const updateTaskById: RequestHandler = async (req, res, next) => {
   try {
-    const taskExists = await getTaskById(id);
-    if (!taskExists) {
-      const response: ApiResponse<null> = {
-        data: null,
-        msg: "Task not found",
-        code: 1,
-      };
-      res.status(404).json(response);
-      return;
+    const id = Number(req.params.id);
+
+    if (isNaN(id)) {
+      throw new ValidationError(`无效的任务ID: ${req.params.id}`);
     }
 
+    const updates = req.body as Partial<Task>;
+
+    if (Object.keys(updates).length === 0) {
+      throw new ValidationError("未提供任何更新数据");
+    }
+
+    // 验证标题不能为空
+    if (
+      updates.title !== undefined &&
+      (!updates.title || updates.title.trim() === "")
+    ) {
+      throw new ValidationError("标题不能为空");
+    }
+
+    // 验证状态值是否有效
+    if (updates.status !== undefined) {
+      const validStatuses = ["pending", "in_progress", "completed"];
+      if (!validStatuses.includes(updates.status)) {
+        throw new ValidationError(
+          `状态值无效: ${updates.status}，有效的状态为 pending, in_progress, completed`
+        );
+      }
+    }
+
+    // 检查任务是否存在
+    const taskExists = await getTaskById(id);
+    if (!taskExists) {
+      throw new NotFoundError(`未找到ID为${id}的任务`);
+    }
+
+    logger.info(`开始更新任务ID ${id}: ${JSON.stringify(updates)}`);
     const result = await updateTask(id, updates);
+
     if (!result) {
-      const response: ApiResponse<null> = {
-        data: null,
-        msg: "Update failed",
-        code: 1,
-      };
-      res.status(400).json(response);
-      return;
+      throw new AppError(`更新任务ID ${id}失败`, 500);
     }
 
     const updatedTask = await getTaskById(id);
     if (!updatedTask) {
-      const response: ApiResponse<null> = {
-        data: null,
-        msg: "Task not found after update",
-        code: 1,
-      };
-      res.status(404).json(response);
-      return;
+      throw new NotFoundError(`更新后未找到ID为${id}的任务`);
     }
 
+    logger.info(`任务ID ${id}更新成功`);
     const response: ApiResponse<Task> = {
       data: updatedTask,
-      msg: "Success",
+      msg: "任务更新成功",
       code: 0,
     };
+
     res.status(200).json(response);
   } catch (error) {
-    console.error(error);
-    const response: ApiResponse<null> = {
-      data: null,
-      msg: "Error updating task",
-      code: 1,
-    };
-    res.status(500).json(response);
+    logger.error(
+      `更新任务失败: ${error instanceof Error ? error.message : String(error)}`
+    );
+    next(error);
   }
 };
 
-export const deleteTaskById: RequestHandler = async (req, res) => {
-  const id = Number(req.params.id);
-  if (isNaN(id)) {
-    const response: ApiResponse<null> = {
-      data: null,
-      msg: "Invalid task ID",
-      code: 1,
-    };
-    res.status(400).json(response);
-    return;
-  }
-
+/**
+ * 删除任务
+ */
+export const deleteTaskById: RequestHandler = async (req, res, next) => {
   try {
+    const id = Number(req.params.id);
+
+    if (isNaN(id)) {
+      throw new ValidationError(`无效的任务ID: ${req.params.id}`);
+    }
+
+    // 检查任务是否存在
     const taskExists = await getTaskById(id);
     if (!taskExists) {
-      const response: ApiResponse<null> = {
-        data: null,
-        msg: "Task not found",
-        code: 1,
-      };
-      res.status(404).json(response);
-      return;
+      throw new NotFoundError(`未找到ID为${id}的任务`);
     }
 
+    logger.info(`开始删除任务ID ${id}`);
     const result = await deleteTask(id);
+
     if (!result) {
-      const response: ApiResponse<null> = {
-        data: null,
-        msg: "Delete failed",
-        code: 1,
-      };
-      res.status(400).json(response);
-      return;
+      throw new AppError(`删除任务ID ${id}失败`, 500);
     }
 
+    logger.info(`任务ID ${id}删除成功`);
     const response: ApiResponse<null> = {
       data: null,
-      msg: "Success",
+      msg: "任务删除成功",
       code: 0,
     };
+
+    // 使用204状态码表示成功但无内容返回
     res.status(204).json(response);
   } catch (error) {
-    console.error(error);
-    const response: ApiResponse<null> = {
-      data: null,
-      msg: "Error deleting task",
-      code: 1,
-    };
-    res.status(500).json(response);
+    logger.error(
+      `删除任务失败: ${error instanceof Error ? error.message : String(error)}`
+    );
+    next(error);
   }
 };
