@@ -67,30 +67,54 @@ project/
 每个功能模块包含自身的路由、控制器、服务等：
 
 ```
-modules/
-├── auth/
-│   ├── auth.controller.ts
-│   ├── auth.routes.ts
-│   ├── auth.service.ts
-│   └── auth.model.ts
-├── users/
-│   ├── ...
-└── products/
-    └── ...
-```
-
-#### 按技术关注点划分
-
-```
 src/
-├── routes/
-│   ├── auth.routes.ts
-│   ├── user.routes.ts
-│   └── ...
-├── controllers/
-│   ├── auth.controller.ts
-│   ├── user.controller.ts
-│   └── ...
+├── config/                  # 配置文件
+│   ├── db.ts                # 数据库配置
+│   ├── swagger.ts           # Swagger配置
+│   └── jwt.ts               # JWT配置
+│
+├── middlewares/             # 中间件
+│   ├── auth.middleware.ts   # 认证中间件
+│   ├── error.middleware.ts  # 错误处理中间件
+│   └── logger.middleware.ts # 日志中间件
+│
+├── models/                  # 数据模型
+│   ├── user.model.ts        # 用户模型
+│   └── task.model.ts        # 任务模型
+│
+├── controllers/             # 控制器
+│   ├── auth/                # 认证相关控制器
+│   ├── tasks/               # 任务相关控制器
+│   └── users/               # 用户相关控制器
+│
+├── services/                # 业务逻辑层
+│   ├── auth.service.ts      # 认证服务
+│   ├── task.service.ts      # 任务服务
+│   └── user.service.ts      # 用户服务
+│
+├── routes/                  # 路由
+│   ├── index.ts             # 路由注册主文件
+│   ├── auth.routes.ts       # 认证路由
+│   ├── task.routes.ts       # 任务路由
+│   └── user.routes.ts       # 用户路由
+│
+├── docs/                    # Swagger文档
+│   ├── auth.docs.ts         # 认证相关接口文档
+│   ├── task.docs.ts         # 任务相关接口文档
+│   └── schemas.docs.ts      # 共享的Schema定义
+│
+├── utils/                   # 工具函数
+│   ├── jwt.utils.ts         # JWT工具
+│   ├── password.utils.ts    # 密码处理工具
+│   └── response.utils.ts    # 响应格式化工具
+│
+├── types/                   # 类型定义
+│   ├── request.ts           # 请求相关类型
+│   ├── response.ts          # 响应相关类型
+│   └── auth.ts              # 认证相关类型
+│
+├── app.ts                   # 应用配置和中间件注册
+└── index.ts                 # 应用入口点
 ```
 
 ### 4. 大型项目最佳实践
