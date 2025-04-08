@@ -9,7 +9,7 @@ const options = {
       description: "API 文档描述",
     },
   },
-  apis: ["./src/routes/*.ts"],
+  apis: ["./src/docs/*.docs.ts"], // 包含所有文档文件
 };
 
 export const swaggerSpec = swaggerJsdoc(options);

@@ -154,14 +154,32 @@ export const updateTaskById: RequestHandler = async (req, res, next) => {
     ) {
       throw new ValidationError("标题不能为空");
     }
+    const { status } = updates;
 
     // 验证状态值是否有效
     if (updates.status !== undefined) {
       const validStatuses = ["pending", "in_progress", "completed"];
-      if (!validStatuses.includes(updates.status)) {
-        throw new ValidationError(
-          `状态值无效: ${updates.status}，有效的状态为 pending, in_progress, completed`
-        );
+      let taskStatus: Task["status"] = "pending"; // 默认值
+      if (status !== undefined) {
+        if (typeof status === "number") {
+          const statusMap: Record<number, Task["status"]> = {
+            1: "pending",
+            2: "in_progress",
+            3: "completed",
+          };
+          if (!statusMap[status]) {
+            throw new ValidationError(
+              `状态值无效: ${status}，有效的数字状态为 1, 2, 3`
+            );
+          }
+          taskStatus = statusMap[status];
+        } else if (validStatuses.includes(status as any)) {
+          taskStatus = status as Task["status"];
+        } else {
+          throw new ValidationError(
+            `状态值无效: ${status}，有效的状态为 pending, in_progress, completed`
+          );
+        }
       }
     }
 
