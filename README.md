@@ -4,14 +4,14 @@
 
 ### 1. 中间件本质
 
-中间件本质上是一个函数，接收 `request`、`response` 对象和 [next](vscode-file://vscode-app/Applications/Visual Studio Code.app/Contents/Resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 函数。Express 应用就是一系列中间件函数的调用栈。
+中间件本质上是一个函数，接收 `request`、`response` 对象和 next() 函数。Express 应用就是一系列中间件函数的调用栈。
 
 ### 2. 中间件类型
 
-- **应用级中间件**: [app.use()](vscode-file://vscode-app/Applications/Visual Studio Code.app/Contents/Resources/app/out/vs/code/electron-sandbox/workbench/workbench.html), [app.METHOD()](vscode-file://vscode-app/Applications/Visual Studio Code.app/Contents/Resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)
+- **应用级中间件**: app.use()
 - **路由级中间件**: `router.use()`, `router.METHOD()`
 - **错误处理中间件**: `(err, req, res, next) => {}`
-- **内置中间件**: [express.json()](vscode-file://vscode-app/Applications/Visual Studio Code.app/Contents/Resources/app/out/vs/code/electron-sandbox/workbench/workbench.html), [express.static()](vscode-file://vscode-app/Applications/Visual Studio Code.app/Contents/Resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)
+- **内置中间件**: express.json()
 - **第三方中间件**: `morgan`, `cors`, `helmet`
 
 ### 3. 中间件工作流程
@@ -23,8 +23,8 @@
 ### 4. 中间件注意事项
 
 - 顺序至关重要
-- 必须调用 [next()](vscode-file://vscode-app/Applications/Visual Studio Code.app/Contents/Resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 或结束响应
-- 可以修改 [req/res](vscode-file://vscode-app/Applications/Visual Studio Code.app/Contents/Resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 对象
+- 必须调用next()或结束响应
+- 可以修改 next() 对象
 - 可以提前终止请求-响应周期
 
 ## 大型Web项目的模块化与结构划分
