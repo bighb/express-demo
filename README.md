@@ -11,7 +11,7 @@
 - **应用级中间件**: app.use()
 - **路由级中间件**: `router.use()`, `router.METHOD()`
 - **错误处理中间件**: `(err, req, res, next) => {}`
-- **内置中间件**: express.json()
+- **内置中间件**: `express.json()`和 `express.static()`
 - **第三方中间件**: `morgan`, `cors`, `helmet`
 
 ### 3. 中间件工作流程
@@ -24,7 +24,7 @@
 
 - 顺序至关重要
 - 必须调用next()或结束响应
-- 可以修改 next() 对象
+- 可以修改 req/res对象
 - 可以提前终止请求-响应周期
 
 ## 大型Web项目的模块化与结构划分
