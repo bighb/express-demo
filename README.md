@@ -1,20 +1,21 @@
-# 任务管理API
+# 任务管理 API
 
-一个基于Express和TypeScript构建的RESTful API项目，提供任务(Task)管理功能，包括任务的创建、查询、更新和删除。本项目主要用于学习Express框架和TypeScript在后端开发中的应用。
+一个基于 Express 和 TypeScript 构建的 RESTful API 项目，提供任务(Task)管理功能，包括任务的创建、查询、更新和删除。本项目主要用于学习 Express 框架和 TypeScript 在后端开发中的应用。
 
 <div align="center">
   <a href="./README_DEMO.md">详细 Express 技术架构说明文档</a>
 </div>
+
 ## 特性
 
-- RESTful API设计
+- RESTful API 设计
 - 分层架构（路由、控制器、模型）
-- Swagger API文档自动生成
+- Swagger API 文档自动生成
 - 错误处理中间件
 - 日志系统（分级日志、文件日志）
 - 健康检查端点
-- MySQL数据库连接池
-- TypeScript类型保障
+- MySQL 数据库连接池
+- TypeScript 类型保障
 - 环境变量配置
 
 ## 技术栈
@@ -28,12 +29,12 @@
 
 - **数据库**: MySQL
 
-- **API文档**: Swagger/OpenAPI
+- **API 文档**: Swagger/OpenAPI
 - **日志**: Winston
 
 - 其他工具：
   - dotenv: 环境变量管理
-  - `mysql2`: 高性能MySQL客户端
+  - `mysql2`: 高性能 MySQL 客户端
   - cors: 跨域资源共享
   - `nodemon`: 开发环境热重载
 
@@ -59,8 +60,6 @@ cd my-blog-api
 pnpm install
 ```
 
-
-
 ### 3. 配置数据库
 
 运行`demo.sql`脚本创建数据库和表结构：
@@ -68,8 +67,6 @@ pnpm install
 ```bash
 mysql -u root -p < demo.sql
 ```
-
-
 
 ### 4. 配置环境变量
 
@@ -93,8 +90,6 @@ DB_NAME=task_manager
 DB_CONNECTION_LIMIT=10
 ```
 
-
-
 ### 5. 构建项目
 
 ```bash
@@ -111,7 +106,7 @@ pnpm dev
 
 pnpm start
 
-服务将在http://localhost:3000启动，你可以在浏览器访问http://localhost:3000/api-docs查看API文档。
+服务将在 http://localhost:3000 启动，你可以在浏览器访问 http://localhost:3000/api-docs 查看 API 文档。
 
 ## 项目结构
 
@@ -143,16 +138,15 @@ src/
 
 ## 日志
 
-日志文件存储在logs目录下：
+日志文件存储在 logs 目录下：
 
 - combined.log: 所有级别的日志
 - error.log: 仅错误级别日志
 
 ## 贡献
 
-欢迎提交Issue和Pull Request来完善本项目。
+欢迎提交 Issue 和 Pull Request 来完善本项目。
 
 ## License
 
-本仓库遵循License 开源协议，该许可证本质上是 Apache 2.0，但有一些额外的限制。
-
+本仓库遵循 License 开源协议，该许可证本质上是 Apache 2.0，但有一些额外的限制。
