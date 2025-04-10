@@ -5,6 +5,7 @@ import { swaggerSpec } from "./config/swagger";
 import cors from "cors";
 import { errorHandler } from "./middlewares/error.middleware";
 import { requestLogger } from "./middlewares/logger.middleware";
+import authRoutes from "./routes/authRoutes";
 import taskRoutes from "./routes/taskRoutes";
 import healthRoutes from "./routes/healthRoutes";
 import logger from "./utils/logger";
@@ -21,7 +22,6 @@ const PORT = 3000;
     logger.warn("应用启动时数据库连接失败，API可能无法正常工作");
   }
 })();
-
 // 应用级中间件：记录请求日志
 app.use(requestLogger);
 // 解析JSON
@@ -33,6 +33,7 @@ app.use(cors());
 
 //挂载路由
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/auth", authRoutes);
 app.use("/api", taskRoutes);
 // 健康检查路由
 app.use("/", healthRoutes);

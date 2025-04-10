@@ -6,13 +6,13 @@ import {
   updateTaskById,
   deleteTaskById,
 } from "../controllers/taskController";
-
+import { authenticateToken } from "../middlewares/authMiddleware";
 const router = Router();
 
-router.get("/tasks", getTasks);
-router.post("/tasks", addTask);
-router.get("/tasks/:id", getTask);
-router.put("/tasks/:id", updateTaskById);
-router.delete("/tasks/:id", deleteTaskById);
+router.get("/tasks", authenticateToken, getTasks);
+router.post("/tasks", authenticateToken, addTask);
+router.get("/tasks/:id", authenticateToken, getTask);
+router.put("/tasks/:id", authenticateToken, updateTaskById);
+router.delete("/tasks/:id", authenticateToken, deleteTaskById);
 
 export default router;
