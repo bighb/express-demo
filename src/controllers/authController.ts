@@ -47,7 +47,6 @@ export const register: RequestHandler = async (req: Request, res: Response) => {
     }
 
     // 用户名不存在，创建新用户
-    console.log("role: ", role);
     const userId = await createUser(username, password, role);
     logger.info(`用户创建成功: ID=${userId}, 用户名="${username}"`);
 

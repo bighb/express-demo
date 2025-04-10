@@ -9,14 +9,6 @@ interface JwtPayload {
   role: string; // 用户角色，用于权限控制
 }
 
-// 使用模块扩展而非全局声明
-// 这种方式更加模块化，只在导入该模块的文件中有效
-declare module "express" {
-  interface Request {
-    user?: JwtPayload; // 向Request对象添加可选的user属性
-  }
-}
-
 /**
  * 认证中间件 - 验证用户JWT令牌
  *

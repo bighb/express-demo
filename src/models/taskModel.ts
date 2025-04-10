@@ -3,6 +3,7 @@ import { Task } from "../types/task";
 import logger from "../utils/logger";
 import { DatabaseError, NotFoundError } from "../utils/errors";
 
+// 获取所有任务（管理员用）
 export const getAllTasks = async (): Promise<Task[]> => {
   try {
     const [rows] = await executeQuery("SELECT * FROM tasks");
@@ -19,12 +20,37 @@ export const getAllTasks = async (): Promise<Task[]> => {
   }
 };
 
+// 按用户ID获取任务
+export const getTasksByUserId = async (userId: number): Promise<Task[]> => {
+  try {
+    const [rows] = await executeQuery("SELECT * FROM tasks WHERE user_id = ?", [
+      userId,
+    ]);
+    return rows as Task[];
+  } catch (error) {
+    logger.error(
+      `获取用户ID=${userId}的任务失败: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+    throw error instanceof DatabaseError
+      ? error
+      : new DatabaseError(`获取用户ID=${userId}的任务失败`, error);
+  }
+};
+
+// 创建任务时添加用户ID
 export const createTask = async (task: Task): Promise<number> => {
   logger.info(`创建任务: ${JSON.stringify(task)}`);
   try {
     const [result] = await executeQuery(
-      "INSERT INTO tasks (title, description, status) VALUES (?, ?, ?)",
-      [task.title, task.description || null, task.status || "pending"]
+      "INSERT INTO tasks (title, description, status, user_id) VALUES (?, ?, ?, ?)",
+      [
+        task.title,
+        task.description || null,
+        task.status || "pending",
+        task.user_id,
+      ]
     );
     const insertId = (result as any).insertId;
     logger.info(`任务创建成功, ID: ${insertId}`);
@@ -36,6 +62,29 @@ export const createTask = async (task: Task): Promise<number> => {
     throw error instanceof DatabaseError
       ? error
       : new DatabaseError("创建任务失败", error);
+  }
+};
+
+// 检查任务是否属于指定用户
+export const isTaskOwnedByUser = async (
+  taskId: number,
+  userId: number
+): Promise<boolean> => {
+  try {
+    const [rows] = await executeQuery(
+      "SELECT COUNT(*) as count FROM tasks WHERE id = ? AND user_id = ?",
+      [taskId, userId]
+    );
+    return (rows as any)[0].count > 0;
+  } catch (error) {
+    logger.error(
+      `检查任务所有权失败: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+    throw error instanceof DatabaseError
+      ? error
+      : new DatabaseError("检查任务所有权失败", error);
   }
 };
 
