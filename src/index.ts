@@ -5,6 +5,7 @@ import { swaggerSpec } from "./config/swagger";
 import cors from "cors";
 import { errorHandler } from "./middlewares/error.middleware";
 import { requestLogger } from "./middlewares/logger.middleware";
+import { rawBodyMiddleware } from "./middlewares/raw-body.middleware";
 import authRoutes from "./routes/authRoutes";
 import taskRoutes from "./routes/taskRoutes";
 import healthRoutes from "./routes/healthRoutes";
@@ -24,6 +25,8 @@ const PORT = 3000;
 })();
 // 应用级中间件：记录请求日志
 app.use(requestLogger);
+// 添加原始请求体中间件 - 必须在express.json()之前
+app.use(rawBodyMiddleware);
 // 解析JSON
 app.use(express.json());
 // 解析urlencoded
