@@ -1,13 +1,7 @@
 // 导入必要的库和类型
 import { Request, Response, NextFunction } from "express"; // 从express导入请求、响应和下一步函数类型
 import jwt from "jsonwebtoken"; // 导入JWT库用于令牌验证
-
-// 定义JWT载荷的接口结构
-// 包含用户ID和角色信息，用于识别和授权用户
-interface JwtPayload {
-  id: number; // 用户唯一标识符
-  role: string; // 用户角色，用于权限控制
-}
+import { JwtPayload } from "../types/jwt"; // 导入 JwtPayload
 
 /**
  * 认证中间件 - 验证用户JWT令牌
