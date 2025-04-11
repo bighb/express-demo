@@ -11,7 +11,12 @@ build/
 *.d.ts
 *.js
 !jest.config.js
+# 忽略自动生成的声明文件
+/dist/**/*.d.ts
+/lib/**/*.d.ts
 
+# 但不要忽略手动编写的声明文件
+!src/**/*.d.ts
 # 环境变量
 .env
 .env.*
