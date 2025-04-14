@@ -110,7 +110,7 @@ export const login: RequestHandler = async (req: Request, res: Response) => {
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET as string,
-      { expiresIn: "1h" } // 令牌有效期为1小时
+      { expiresIn: "30d" } // 令牌有效期为1个月
     );
 
     logger.info(`用户 "${username}" 登录成功`);
