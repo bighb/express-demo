@@ -6,11 +6,10 @@ import cors from "cors";
 import { errorHandler } from "./middlewares/error.middleware";
 import { requestLogger } from "./middlewares/logger.middleware";
 import { methodNotAllowedMiddleware } from "./middlewares/method-not-allowed.middleware";
-import authRoutes from "./routes/authRoutes";
-import taskRoutes from "./routes/taskRoutes";
-import healthRoutes from "./routes/healthRoutes";
 import logger from "./utils/logger";
 import { testConnection } from "./config/db";
+// 引入聚合路由
+import apiRoutes from "./routes/index";
 
 dotenv.config();
 const app = express();
@@ -33,19 +32,12 @@ app.use(express.urlencoded({ extended: true }));
 // 使用cors
 app.use(cors());
 
-//挂载路由
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.use("/auth", authRoutes);
-app.use("/api", taskRoutes);
-// 健康检查路由
-app.use("/", healthRoutes);
-
-// 主页路由
+//挂载路由 使用单一挂载点
+app.use("/api", apiRoutes);
 app.get("/", (req, res) => {
-  res.send("任务管理API服务运行中");
+  res.send("任务管理API服务运行中，API文档请访问: /api/docs");
 });
-// 方法不匹配中间件 (应放在所有路由之后)
-app.use(methodNotAllowedMiddleware);
+
 // 404处理 - 移到最后面，在所有正常路由之后
 app.use((req, res) => {
   res.status(404).json({
@@ -54,13 +46,14 @@ app.use((req, res) => {
     code: 404,
   });
 });
-
+// 方法不匹配中间件 (应放在所有路由之后)
+app.use(methodNotAllowedMiddleware);
 // 错误处理中间件（必须放在最后）
 app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
-  console.log(`Swagger UI at http://localhost:${PORT}/api-docs`);
+  console.log(`Swagger UI at http://localhost:${PORT}/api/docs`);
 });
 
 // 处理未捕获的异常

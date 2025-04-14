@@ -59,7 +59,7 @@
 
 /**
  * @swagger
- * /auth/register:
+ * /api/auth/register:
  *   post:
  *     tags: [Authentication]
  *     summary: 用户注册
@@ -112,7 +112,7 @@
 
 /**
  * @swagger
- * /auth/login:
+ * /api/auth/login:
  *   post:
  *     tags: [Authentication]
  *     summary: 用户登录

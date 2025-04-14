@@ -10,11 +10,11 @@ import {
 import { authenticateToken } from "../middlewares/authMiddleware";
 const router = Router();
 
-router.get("/tasks", authenticateToken, getTasks);
-router.post("/tasks", authenticateToken, addTask);
-router.get("/tasks/:id", authenticateToken, getTask);
-router.put("/tasks/:id", authenticateToken, updateTaskById);
-router.delete("/tasks/:id", authenticateToken, deleteTaskById);
+router.get("/", authenticateToken, getTasks);
+router.post("/", authenticateToken, addTask);
+router.get("/:id", authenticateToken, getTask);
+router.put("/:id", authenticateToken, updateTaskById);
+router.delete("/:id", authenticateToken, deleteTaskById);
 // 新增路由 - 获取指定用户的任务(管理员功能)
 router.get("/users/:userId/tasks", authenticateToken, getUserTasks);
 export default router;
