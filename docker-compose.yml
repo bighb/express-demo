@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  api:
+    build: .
+    container_name: blog-api
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=mysql # 重要：在docker-compose网络中使用服务名作为主机名
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=3306
+      - DB_CONNECTION_LIMIT=${DB_CONNECTION_LIMIT}
+      - JWT_SECRET=${JWT_SECRET}
+
+    volumes:
+      - ./logs:/app/logs # 持久化日志目录
+    networks:
+      - blog-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: blog-mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD==${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql # 持久化数据
+      - ./mysql-init:/docker-entrypoint-initdb.d # 初始化SQL脚本（可选）
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks:
+      - blog-network
+
+networks:
+  blog-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+    driver: local
