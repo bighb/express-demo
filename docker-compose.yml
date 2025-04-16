@@ -34,7 +34,7 @@ services:
       - MYSQL_ROOT_PASSWORD==${DB_PASSWORD}
       - MYSQL_DATABASE=${DB_NAME}
     ports:
-      - "3306:3306"
+      - "3306:3306" # 建议移除 MySQL 的 ports: "3306:3306"，仅允许内网访问
     volumes:
       - mysql-data:/var/lib/mysql # 持久化数据
       - ./mysql-init:/docker-entrypoint-initdb.d # 初始化SQL脚本（可选）
